@@ -1,23 +1,11 @@
-import { useState } from 'react'
-/* import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
- */
+import "./styles.css";
+import { useState } from "react";
+import Card from "./Card";
 
-/* function App() {
-  return (
-    <div className="min-vh-100 bg-dark text-light">
-      <div className="container py-4">
-        <h1>Mi app</h1>
-        <button className="btn btn-success">Aceptar</button>
-      </div>
-    </div>
-  );
-} */
-
-  function App() {
+function App() {
   const [videojuegos, setVideojuegos] = useState([
     { id: 1, nombre: "Fortnite", precio: 10, tamano: 20 },
-    { id: 2, nombre: "Call of Duty", precio: 20, tamano: 20},
+    { id: 2, nombre: "Call of Duty", precio: 20, tamano: 20 },
     { id: 3, nombre: "Minecraft", precio: 40, tamano: 20 },
   ]);
 
@@ -58,73 +46,99 @@ import viteLogo from '/vite.svg'
   };
 
   return (
-    <div className="estilo1 text-light " > 
-      <h1>🎮 Gestor de Videojuegos</h1>
+    <div style={{ padding: "20px", fontFamily: "Arial" }}>
+      <Card>
+        <h1>🎮 Gestor de Videojuegos</h1>
 
-      <h2>Agregar videojuego</h2>
+        <h2>Agregar videojuego</h2>
 
-      {error && <p style={{ color: "red" }}>{error}</p>}
+        {error && <p style={{ color: "red" }}>{error}</p>}
 
-      <input
-        type="text"
-        placeholder="Nombre"
-        value={nombre}
-        onChange={(e) => setNombre(e.target.value)}
-      />
-      <br />
-      <br />
-      
-      <input
-        type="text"
-        placeholder="tamaño"
-        value={tamano}
-        onChange={(e) => setTamano(e.target.value)}
-      />
+        <input
+          className="shadow rounded-2"
+          type="text"
+          placeholder="Nombre"
+          value={nombre}
+          onChange={(e) => setNombre(e.target.value)}
+        />
 
-      <br />
+        <br />
+        <br />
 
-      <br />
+        <input
+          className="shadow rounded-2"
+          type="text"
+          placeholder="tamaño"
+          value={tamano}
+          onChange={(e) => setTamano(e.target.value)}
+        />
 
-      <input
-        type="number"
-        placeholder="Precio"
-        value={precio}
-        onChange={(e) => setPrecio(e.target.value)} //e.target.value === "Mario"
-      />
+        <br />
 
-      <br />
-      <br />
+        <br />
 
-      <button  className="btn btn-dark" onClick={agregarJuego} >Agregar</button>
+        <input
+          className="shadow rounded-2"
+          type="number"
+          placeholder="Precio"
+          value={precio}
+          onChange={(e) => setPrecio(e.target.value)} //e.target.value === "Mario"
+        />
 
+        <br />
+        <br />
+
+        <button className="btn btn-dark " onClick={agregarJuego}>
+          Agregar
+        </button>
+        <br />
+        <br />
+      </Card>
       <hr />
+   <h2>Lista de videojuegos</h2>   
+<table className="table cssw-800px">
 
-      <h2>Lista de videojuegos</h2>
+   <thead>
+    <tr >
+      <th>Nombre</th>
+      <th>Precio</th>
+      <th>Tamaño</th>
+      <th>Accion</th>
+    </tr>
+  </thead>
+      
 
       {videojuegos.length === 0 ? (
         <p>No hay videojuegos registrados</p>
       ) : (
-        <ul>
+         <tbody>
           {videojuegos.map((juego) => (
-            <li key={juego.id}>
-              {juego.nombre} - ${juego.precio} - {juego.tamano}gb
-             
-             
+            <tr key={juego.id}>
+              <td>{juego.nombre}</td>
+              <td>${juego.precio}</td>
+              <td> {juego.tamano}gb</td>
+                
+
               <button
-                style={{ marginLeft: "10px" }}
+                className="btn btn-dark"
                 onClick={() => eliminarJuego(juego.id)}
               >
                 Eliminar
               </button>
-            </li>
-
-
+              
+            </tr>
           ))}
-        </ul>
+     </tbody>   
       )}
+
+</table>
+
+      
     </div>
   );
 }
 
 
-export default App
+
+
+export default App;
