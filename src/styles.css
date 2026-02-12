@@ -1,3 +1,5 @@
+
+
 .App {
   font-family: sans-serif;
   text-align: center;
@@ -6,9 +8,9 @@
 .cssw-500px {
   width: 500px;
 }
-
+/* 
 table.cssw-800px {
-      width: 800px; /* !important fuerza el estilo */
+     width: 800px; /* !important fuerza el estilo */
 
  
-}
+} */

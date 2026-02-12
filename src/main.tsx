@@ -8,7 +8,7 @@ import './styles.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   
-    <div className="app">
+    <div className="app ">
       <App />
     </div>
 

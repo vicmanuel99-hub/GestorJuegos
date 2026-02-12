@@ -2,21 +2,28 @@ import "./styles.css";
 import { useState } from "react";
 import Card from "./Card";
 
+interface Videojuego {
+  id: number;
+  nombre: string;
+  precio: number;
+  tamano: number;
+}
+
 function App() {
-  const [videojuegos, setVideojuegos] = useState([
+  const [videojuegos, setVideojuegos] = useState<Videojuego[]>([
     { id: 1, nombre: "Fortnite", precio: 10, tamano: 20 },
-    { id: 2, nombre: "Call of Duty", precio: 20, tamano: 20 },
-    { id: 3, nombre: "Minecraft", precio: 40, tamano: 20 },
+    { id: 2, nombre: "Call of Duty", precio: 100, tamano: 200 },
+    { id: 3, nombre: "Minecraft", precio: 4000, tamano: 2000 },
   ]);
 
   const [nombre, setNombre] = useState("");
   const [precio, setPrecio] = useState("");
   const [tamano, setTamano] = useState("");
   const [error, setError] = useState("");
+  const [editandoId, setEditandoId] = useState<number | null>(null);
 
-  const agregarJuego = () => {
-    // Validaciones (mentalidad QA)
-    if (nombre.trim() === "" || precio === "") {
+  const guardarJuego = () => {
+    if (nombre.trim() === "" || precio === "" || tamano === "") {
       setError("Todos los campos son obligatorios");
       return;
     }
@@ -26,18 +33,34 @@ function App() {
       return;
     }
 
-    const nuevoJuego = {
-      id: videojuegos.length + 1,
-      nombre,
-      precio: Number(precio),
-      tamano: Number(tamano),
-    };
+    if (editandoId !== null) {
+      // MODO EDITAR
+      const actualizados = videojuegos.map((juego) =>
+        juego.id === editandoId
+          ? {
+              ...juego,
+              nombre,
+              precio: Number(precio),
+              tamano: Number(tamano),
+            }
+          : juego
+      );
 
-    setVideojuegos([...videojuegos, nuevoJuego]);
-    setNombre("");
-    setPrecio("");
-    setTamano("");
-    setError("");
+      setVideojuegos(actualizados);
+      setEditandoId(null);
+    } else {
+      // MODO AGREGAR
+      const nuevoJuego: Videojuego = {
+        id: videojuegos.length + 1,
+        nombre,
+        precio: Number(precio),
+        tamano: Number(tamano),
+      };
+
+      setVideojuegos([...videojuegos, nuevoJuego]);
+    }
+
+    limpiarFormulario();
   };
 
   const eliminarJuego = (id: number) => {
@@ -45,12 +68,29 @@ function App() {
     setVideojuegos(filtrados);
   };
 
+  const editarJuego = (id: number) => {
+    const juego = videojuegos.find((j) => j.id === id);
+    if (!juego) return;
+
+    setNombre(juego.nombre);
+    setPrecio(String(juego.precio));
+    setTamano(String(juego.tamano));
+    setEditandoId(id);
+  };
+
+  const limpiarFormulario = () => {
+    setNombre("");
+    setPrecio("");
+    setTamano("");
+    setError("");
+  };
+
   return (
-    <div style={{ padding: "20px", fontFamily: "Arial" }}>
+    <div className="ps-5 py-5">
       <Card>
         <h1>🎮 Gestor de Videojuegos</h1>
 
-        <h2>Agregar videojuego</h2>
+        <h2>{editandoId ? "Editar videojuego" : "Agregar videojuego"}</h2>
 
         {error && <p style={{ color: "red" }}>{error}</p>}
 
@@ -62,83 +102,78 @@ function App() {
           onChange={(e) => setNombre(e.target.value)}
         />
 
-        <br />
-        <br />
+        <br /><br />
 
         <input
           className="shadow rounded-2"
-          type="text"
-          placeholder="tamaño"
+          type="number"
+          placeholder="Tamaño (GB)"
           value={tamano}
           onChange={(e) => setTamano(e.target.value)}
         />
 
-        <br />
-
-        <br />
+        <br /><br />
 
         <input
           className="shadow rounded-2"
           type="number"
           placeholder="Precio"
           value={precio}
-          onChange={(e) => setPrecio(e.target.value)} //e.target.value === "Mario"
+          onChange={(e) => setPrecio(e.target.value)}
         />
 
-        <br />
-        <br />
+        <br /><br />
 
-        <button className="btn btn-dark " onClick={agregarJuego}>
-          Agregar
+        <button className="btn btn-dark" onClick={guardarJuego}>
+          {editandoId ? "Actualizar" : "Agregar"}
         </button>
-        <br />
-        <br />
       </Card>
-      <hr />
-   <h2>Lista de videojuegos</h2>   
-<table className="table cssw-800px">
 
-   <thead>
-    <tr >
-      <th>Nombre</th>
-      <th>Precio</th>
-      <th>Tamaño</th>
-      <th>Accion</th>
-    </tr>
-  </thead>
-      
+      <hr />
+
+      <h2>Lista de videojuegos</h2>
 
       {videojuegos.length === 0 ? (
         <p>No hay videojuegos registrados</p>
       ) : (
-         <tbody>
-          {videojuegos.map((juego) => (
-            <tr key={juego.id}>
-              <td>{juego.nombre}</td>
-              <td>${juego.precio}</td>
-              <td> {juego.tamano}gb</td>
-                
-
-              <button
-                className="btn btn-dark"
-                onClick={() => eliminarJuego(juego.id)}
-              >
-                Eliminar
-              </button>
-              
+        <table className="table cssw-800px">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Tamaño</th>
+              <th>Precio</th>
+              <th>Acción</th>
             </tr>
-          ))}
-     </tbody>   
+          </thead>
+
+          <tbody>
+            {videojuegos.map((juego) => (
+              <tr key={juego.id}>
+                <td>{juego.nombre}</td>
+                <td>{juego.tamano} gb</td>
+                <td>${juego.precio}</td>
+                <td>
+                  <button
+                    className="btn btn-dark"
+                    onClick={() => eliminarJuego(juego.id)}
+                  >
+                    Eliminar
+                  </button>
+
+                  <button
+                    className="ms-2 btn btn-dark"
+                    onClick={() => editarJuego(juego.id)}
+                  >
+                    Editar
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       )}
-
-</table>
-
-      
     </div>
   );
 }
-
-
-
 
 export default App;
