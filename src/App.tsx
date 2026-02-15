@@ -1,5 +1,5 @@
 import "./styles.css";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Card from "./Card";
 
 interface Videojuego {
@@ -9,20 +9,38 @@ interface Videojuego {
   tamano: number;
 }
 
+const API_URL = "http://localhost:3000/videojuegos";
+
 function App() {
-  const [videojuegos, setVideojuegos] = useState<Videojuego[]>([
-    { id: 1, nombre: "Fortnite", precio: 10, tamano: 20 },
-    { id: 2, nombre: "Call of Duty", precio: 100, tamano: 200 },
-    { id: 3, nombre: "Minecraft", precio: 4000, tamano: 2000 },
-  ]);
+  const [videojuegos, setVideojuegos] = useState<Videojuego[]>([]);
 
   const [nombre, setNombre] = useState("");
   const [precio, setPrecio] = useState("");
   const [tamano, setTamano] = useState("");
   const [error, setError] = useState("");
   const [editandoId, setEditandoId] = useState<number | null>(null);
+  const [cargando, setCargando] = useState(false);
 
-  const guardarJuego = () => {
+  // Cargar videojuegos al montar el componente
+  useEffect(() => {
+    cargarVideojuegos();
+  }, []);
+
+  const cargarVideojuegos = async () => {
+    try {
+      setCargando(true);
+      const response = await fetch(API_URL);
+      const data = await response.json();
+      setVideojuegos(data);
+    } catch (error) {
+      console.error("Error al cargar videojuegos:", error);
+      setError("Error al cargar los videojuegos del servidor");
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  const guardarJuego = async () => {
     if (nombre.trim() === "" || precio === "" || tamano === "") {
       setError("Todos los campos son obligatorios");
       return;
@@ -33,39 +51,85 @@ function App() {
       return;
     }
 
-    if (editandoId !== null) {
-      // MODO EDITAR
-      const actualizados = videojuegos.map((juego) =>
-        juego.id === editandoId
-          ? {
-              ...juego,
-              nombre,
-              precio: Number(precio),
-              tamano: Number(tamano),
-            }
-          : juego
-      );
+    try {
+      setCargando(true);
 
-      setVideojuegos(actualizados);
-      setEditandoId(null);
-    } else {
-      // MODO AGREGAR
-      const nuevoJuego: Videojuego = {
-        id: videojuegos.length + 1,
-        nombre,
-        precio: Number(precio),
-        tamano: Number(tamano),
-      };
+      if (editandoId !== null) {
+        // MODO EDITAR - PUT
+        const response = await fetch(`${API_URL}/${editandoId}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            nombre,
+            precio: Number(precio),
+            tamano: Number(tamano),
+          }),
+        });
 
-      setVideojuegos([...videojuegos, nuevoJuego]);
+        if (!response.ok) {
+          throw new Error("Error al actualizar el juego");
+        }
+
+        const juegoActualizado = await response.json();
+
+        const actualizados = videojuegos.map((juego) =>
+          juego.id === editandoId ? juegoActualizado : juego
+        );
+
+        setVideojuegos(actualizados);
+        setEditandoId(null);
+      } else {
+        // MODO AGREGAR - POST
+        const response = await fetch(API_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            nombre,
+            precio: Number(precio),
+            tamano: Number(tamano),
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error("Error al crear el juego");
+        }
+
+        const nuevoJuego = await response.json();
+        setVideojuegos([...videojuegos, nuevoJuego]);
+      }
+
+      limpiarFormulario();
+    } catch (error) {
+      console.error("Error al guardar:", error);
+      setError("Error al guardar el videojuego");
+    } finally {
+      setCargando(false);
     }
-
-    limpiarFormulario();
   };
 
-  const eliminarJuego = (id: number) => {
-    const filtrados = videojuegos.filter((j) => j.id !== id);
-    setVideojuegos(filtrados);
+  const eliminarJuego = async (id: number) => {
+    try {
+      setCargando(true);
+      const response = await fetch(`${API_URL}/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Error al eliminar el juego");
+      }
+
+      const filtrados = videojuegos.filter((j) => j.id !== id);
+      setVideojuegos(filtrados);
+    } catch (error) {
+      console.error("Error al eliminar:", error);
+      setError("Error al eliminar el videojuego");
+    } finally {
+      setCargando(false);
+    }
   };
 
   const editarJuego = (id: number) => {
@@ -92,6 +156,7 @@ function App() {
 
         <h2>{editandoId ? "Editar videojuego" : "Agregar videojuego"}</h2>
 
+        {cargando && <p style={{ color: "blue" }}>⏳ Cargando...</p>}
         {error && <p style={{ color: "red" }}>{error}</p>}
 
         <input
